@@ -4,12 +4,16 @@ from pybaseball import statcast
 
 import os
 
+
+data  = pd.read_csv("/Users/yantianli/Downloads/savant_data_2.csv")
+print(len(data))
+#%%
 # pd.set_option('display.max_rows', None)  # 顯示所有行
 # pd.set_option('display.max_columns', None)  # 顯示所有列
 # pd.set_option('display.width', None)  # 自動調整寬度以適應內容
 # pd.set_option('display.max_colwidth', None)  # 不限制單個列的最大寬度
  
-year = 2014
+year = 2024
   # 可調整年份範圍
 # 建立月份區間（每月抓一次）
 months = [
@@ -34,11 +38,10 @@ for start, end in months:
         if df is not None and not df.empty:
             all_data.append(df)
     except Exception as e:
-        print(f"⚠️ {year}-{start} ~ {year}-{end} 抓取失敗：{e}")
+        print(f"{year}-{start} ~ {year}-{end} 抓取失敗：{e}")
 
 # 合併成一個 DataFrame
 data = pd.concat(all_data, ignore_index=True)
 
-print(f"抓到 {len(f'data_{year}')} 筆資料")
 data.to_csv(f"statcast_{year}.csv", index=False)
 #%%
