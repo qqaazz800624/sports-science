@@ -1,2 +1,3 @@
 # 忽略所有 CSV 檔案
 *.csv
+*.parquet
