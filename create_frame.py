@@ -6,7 +6,8 @@ from IPython.display import display
 import pandas as pd
 import numpy as np
 
-import plotly.express as px
+import matplotlib.pyplot as plt
+from matplotlib import colors as mcolors
 
 pd.set_option("display.max_rows", None)      # 列不要省略
 pd.set_option("display.max_columns", None)   # 欄不要省略
@@ -51,39 +52,61 @@ else:
 print(f"共讀入 {len(savant_data_14_24):,} 筆資料。")
 
 # sample 100比資料的測試檔
-sample_data = savant_data_14_24.sample(n=100, random_state=42)
+sample_data = savant_data_14_24.sample(n=2000, random_state=42)
 
 # 可用sample_data to do test
-data = savant_data_14_24.copy()
+data = sample_data.copy()
 
 
 df = data.copy()
 # 資料整理
-sorted_data = df[
+sorted_df = df[
     (df["description"] == "hit_into_play") # 球被擊出
     & (df["game_type"] == "R") # regular season
 ]
-#刪除掉 沒有 launch_angle 或 launch_speed 的 row
-sorted_data = sorted_data.dropna(subset=['launch_angle', 'launch_speed'], how='any')
+#刪除掉沒有 launch_angle 或 launch_speed
+sorted_data = sorted_df.dropna(subset=['launch_angle', 'launch_speed'], how='any')
+# 把 launch_speed > 120 的值改成 120
+sorted_df.loc[sorted_df["launch_speed"] > 120, "launch_speed"] = 120
 
-# 將 launch_angle (-90~90) 映射到極座標角度：0° 水平、-90° 向下、90° 向上
-#
-fig = px.scatter_polar(r=sorted_data["launch_speed"], 
-                      theta=sorted_data["launch_angle"],
-                      range_theta=[-90,90], 
-                      start_angle=0, 
-                      direction="counterclockwise",
-                      color=sorted_data["events"],)
+# 建立顏色對照
+unique_events = sorted_df["events"].dropna().unique()
+colors = plt.cm.get_cmap("hsv", len(unique_events))
+event_to_color = {ev: colors(i) for i, ev in enumerate(unique_events)}
+event_to_color["unknown"] = (0.5, 0.5, 0.5, 0.5)  # 為 NaN 預留顏色
 
-fig.update_layout(
-    width=700,      # 圖寬
-    height=1000,    # 圖高（比寬高會讓半圓看起來更直立）
-    autosize=False,
-    margin=dict(l=40, r=40, t=40, b=40),
-)
+# 填補缺值後 map
+event_colors = sorted_df["events"].fillna("unknown").map(event_to_color)
+event_colors = mcolors.to_rgba_array(event_colors.tolist())
 
-fig.show()
+# 繪圖
+angles = np.deg2rad(sorted_df["launch_angle"])
+radii = sorted_df["launch_speed"]
+area = (radii / radii.max()) * 20
+
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(projection='polar')
+sc = ax.scatter(angles, radii, c=event_colors, s=area, alpha=0.7)
+ax.set_thetamin(-90)
+ax.set_thetamax(90)
+
+# 加上圖例（右側）
+handles = [plt.Line2D([0], [0], marker='o', color='w', label=ev,
+                      markerfacecolor=event_to_color[ev], markersize=8)
+            for ev in event_to_color.keys()]
+ax.legend(handles=handles, title='Event', loc='center left', bbox_to_anchor=(1.05, 0.5))
+
+# 加上輔助圓弧線（例：r = 20, 40, 60, 80, 100, 120）
+r_lines = np.arange(0, 121, 3)
+for r in r_lines:
+    ax.plot(np.linspace(np.radians(-90), np.radians(90), 200), 
+            [r]*200, '-', color='gray', lw=0.5)
+
+theta_lines = np.arange(-90, 91, 3)
+for theta in theta_lines:
+    ax.plot(np.radians([theta] * len(radii)), 
+            radii, '-', color='gray', lw=0.5)
 
 
-
+plt.show()
 #%%
