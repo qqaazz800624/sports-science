@@ -11,15 +11,15 @@ from expect_score import get_expected_dataset, get_event_distribution, get_whole
 
 
 # import fangrph data for batter and p
-pitcher_data_fg = pd.read_csv('/Users/yantianli/factor_and_defense_factor/fg_pitcher')
-batter_data_fg = pd.read_csv('/Users/yantianli/factor_and_defense_factor/fg_batter')
+pitcher_data_fg = pd.read_csv('/Users/yantianli/factor_and_defense_factor/fg_pitcher.csv')
+batter_data_fg = pd.read_csv('/Users/yantianli/factor_and_defense_factor/fg_batter.csv')
 
 # add year column
 pitcher_data_fg.insert(1, 'year', pd.to_datetime(pitcher_data_fg['game_date'], errors='coerce').dt.year)
 batter_data_fg.insert(1, 'year', pd.to_datetime(batter_data_fg['game_date'], errors='coerce').dt.year)
 
 
-def expected_score_tbl(data: pd.DataFrame, 
+def hip_score_tbl(data: pd.DataFrame, 
                       dist_df: pd.DataFrame, 
                       year: int, 
                       player_mlbid, 
@@ -87,7 +87,7 @@ def expected_score_tbl(data: pd.DataFrame,
             rtheta = row['r_theta']
             if rtheta in dist_dict:
                 events, probs = dist_dict[rtheta]
-                simulated_event = np.random.choice(events, p=probs)
+                simulated_event = np.random.choice(events, p=probs) # type: ignore
                 simulated_events.append(simulated_event)
             else:
                 simulated_events.append(np.nan)
@@ -118,17 +118,53 @@ def expected_score_tbl(data: pd.DataFrame,
     return combined
 
 
+def nonhip_score_tbl(data: pd.DataFrame, 
+                    year: int, 
+                    player_mlbid, 
+                    player_type: str,):
+    """
+    計算指定球員在指定年度的真實事件分布表。
+    回傳：
+        DataFrame，欄位 ['events', 'sum_real_count']
+    """
+    # 篩選出沒有打進場的 data 
+    df = data[
+        (data['year'] == year) & 
+        (data['game_type'] == 'R') &
+        (data['description'] != 'hit_into_play')
+    ].copy()
+    df = df.dropna(subset=['events'])
 
-# cole_expected = expected_score_tbl(
-#     data=get_expected_dataset(),
-#     dist_df=get_event_distribution(),
-#     year=2019,
-#     player_mlbid=543037,
-#     player_type='pitcher',
-#     method='expectation',
-#     n_simulations=1000,
-#     random_seed = 42
-# )
+    if player_mlbid is not None:
+        df = df[df[player_type] == player_mlbid]
+
+    # 統計每個事件的次數
+    real_df = df['events'].value_counts().reset_index()
+    real_df.columns = ['events', 'sum_real_count']
+    real_df['sum_expected_count'] = real_df['sum_real_count']
+
+    # 依照次數排序
+    real_df = real_df.sort_values('sum_real_count', ascending=False).reset_index(drop=True)
+
+    return real_df
+
+cole_nonhip_score = nonhip_score_tbl(get_whole_dataset(),
+                                     year=2019,
+                                     player_mlbid=543037,
+                                     player_type='pitcher')
+cole_expected = hip_score_tbl(
+    data=get_expected_dataset(),
+    dist_df=get_event_distribution(),
+    year=2019,
+    player_mlbid=543037,
+    player_type='pitcher',
+    method='expectation',
+    n_simulations=1000,
+    random_seed = 42
+)
+
+display(cole_nonhip_score)
+display(cole_expected)
 # cole_stimuation = expected_score_tbl(
 #     data=get_expected_dataset(),
 #     dist_df=get_event_distribution(),
