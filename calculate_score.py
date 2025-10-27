@@ -6,6 +6,8 @@ from IPython.display import display
 import pandas as pd
 import numpy as np
 
+from pybaseball import playerid_reverse_lookup
+
 from expect_score import get_expected_dataset, get_event_distribution, get_whole_dataset
 
 
