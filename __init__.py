@@ -7,5 +7,5 @@ factor_and_defense_factor package
 - expect_score：建立 expected_event 及 event_distribution
 """
 
-from .calculate_score import hip_score_tbl, nonhip_score_tbl, ibb_value_tbl
+from .calculate_score import hip_score_tbl, nonhip_score_tbl, ibb_score_tbl, combined_score_tbl
 from .expect_score import get_expected_dataset, get_event_distribution, get_whole_dataset

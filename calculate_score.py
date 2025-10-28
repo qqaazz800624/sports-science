@@ -10,8 +10,8 @@ from pybaseball import playerid_reverse_lookup
 
 from expect_score import get_expected_dataset, get_event_distribution, get_whole_dataset
 
-
-
+display(get_expected_dataset()['events'].value_counts())
+#%%
 # import fangrph data for batter and p
 pitcher_data_fg = pd.read_csv('/Users/yantianli/factor_and_defense_factor/fg_pitcher.csv')
 batter_data_fg = pd.read_csv('/Users/yantianli/factor_and_defense_factor/fg_batter.csv')
@@ -38,7 +38,8 @@ def hip_score_tbl(data: pd.DataFrame,
 
     df = data[
         (data['year'] == year) & 
-        (data['game_type'] == 'R')
+        (data['game_type'] == 'R')&
+        (data['description'] == 'hit_into_play')
     ].copy()
     df = df.dropna(subset=['events'])
 
@@ -233,12 +234,14 @@ def combined_score_tbl(data: pd.DataFrame,
     return combined_df
 
 
+
+
 cole_score = combined_score_tbl(
-    data=get_expected_dataset(),
+    data=get_whole_dataset(),
     dist_df=get_event_distribution(),
     year=2019,
-    player_mlbid=543037,  # Gerrit Cole
-    player_type='pitcher',
+    player_mlbid=592450,  # Judge
+    player_type='batter',
     method='expectation'
 )
 
