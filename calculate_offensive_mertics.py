@@ -6,11 +6,8 @@ from IPython.display import display
 import pandas as pd
 import numpy as np
 
-from pybaseball import playerid_reverse_lookup
-
 from expect_score import get_truncated_dataset, get_rtheta_prob_tbl, get_whole_dataset
-from calculate_score import hip_score_tbl, nonhip_score_tbl, ibb_score_tbl, combined_score_tbl
-
+from calculate_score import combined_score_tbl
 
 
 def cal_pa_ab(df: pd.DataFrame,
