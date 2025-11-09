@@ -12,7 +12,7 @@ from calculate_score import combined_score_tbl
 
 
 def cal_pa_ab(df: pd.DataFrame,
-              col: str = 'sum_real_count'):
+            col: str = 'sum_real_count'):
     """
     計算打席數 (PA) 與打數 (AB)。
     
@@ -219,7 +219,7 @@ judge_df = combined_score_tbl(
 
 
 babip = cal_babip(judge_df, 'sum_real_count')
-display(f"Judge {year_search} 年的 OBP is {babip}")
+#display(f"Judge {year_search} 年的 OBP is {babip}")
 # display(judge_df)
 # pa, ab = cal_pa_ab(judge_df, 'sum_expected_count')
 # print(f"Judge {year_search} 年 PA: {pa}, AB: {ab}")

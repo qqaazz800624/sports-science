@@ -210,7 +210,7 @@ def ibb_score_tbl(year: int,
 
     # 篩選選手的資料
     player_data = df[(df['game_year'] == year) &
-                    (df['fg_id'] == fg_id)]
+                    (df['IDfg'] == fg_id)]
     # 回傳 IBB 總數
     if not player_data.empty and 'IBB' in player_data.columns:
         return int(player_data['IBB'].sum())
