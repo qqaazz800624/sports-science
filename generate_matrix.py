@@ -223,12 +223,25 @@ def collect_eqns(
     league_tbl=league_tbl,
     metric=metric,
     yr=yr)
-
+    print(f"✅ {yr} 年方程式生成完畢：")
+    print(f"  park_factor: {len(year_park_eqs)} 條")
+    print(f"  home_defense: {len(year_home_defense_eqs)} 條")
+    print(f"  away_offense: {len(year_away_offense_eqs)} 條")
     return {
         "park_factor": year_park_eqs,
         "home_defense": year_home_defense_eqs,
         "away_offense": year_away_offense_eqs
     }
+
+year_eqs = collect_eqns(
+        data=df,
+        park_data=park_df,
+        pitch_data=pitch_df,
+        batter_data=bat_df,
+        league_tbl=league_summary_tbl,
+        metric='SLG',
+        yr=2024
+    )
 
 
 # eqs_2024 = collect_eqns(
