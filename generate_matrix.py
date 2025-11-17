@@ -19,7 +19,6 @@ pitch_df = get_team_score("pitch")
 park_df = get_team_score("park")
 league_summary_tbl = get_league_tbl()
 
-
 batter_tm_col = df.pop('batter_team')
 pitcher_tm_col = df.pop('pitcher_team')
 
@@ -28,6 +27,13 @@ new_pitcher_tm_col = df.columns.get_loc('pitcher') + 1 #type: ignore
 
 df.insert(new_batter_tm_col, 'batter_team', batter_tm_col) #type: ignore
 df.insert(new_pitcher_tm_col, 'pitcher_team', pitcher_tm_col) #type: ignore
+
+# nyy_bat_df = bat_df[
+#     (bat_df['game_year'] == 2024)&
+#     (bat_df['away_team'] == 'NYY')&
+#     (bat_df['batter_team'] == 'NYY')&
+#     (bat_df['description'] == 'hit_into_play')
+# ]
 
 
 # 計算打線在其他park作客的年度結果

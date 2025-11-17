@@ -125,7 +125,7 @@ def get_team_score(score_type: str):
     return df
 
 
-
+#%%
 # def get_tm_park_score():
 #     """回傳 15~24的球場成績"""
 #     path = os.path.join(BASE_DIR_tm, "team_park_tbl.csv")

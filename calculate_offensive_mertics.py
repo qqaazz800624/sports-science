@@ -207,7 +207,7 @@ def cal_ops(df: pd.DataFrame,
 
 
 
-year_search = 2024
+year_search = 2022
 
 judge_df = combined_score_tbl(
     data=get_truncated_dataset(),
@@ -216,8 +216,9 @@ judge_df = combined_score_tbl(
     player_mlbid=592450,
     player_type='batter'
 )
-
-
+print(f"Aaron Judge {year_search} 的真實打擊成績跟預期打擊成績")
+display(judge_df)
+#%%
 babip = cal_babip(judge_df, 'sum_real_count')
 #display(f"Judge {year_search} 年的 OBP is {babip}")
 # display(judge_df)

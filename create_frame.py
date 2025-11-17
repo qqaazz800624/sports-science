@@ -84,6 +84,8 @@ sorted_df = df[
 ].copy()
 #刪除掉沒有 launch_angle 或 launch_speed
 sorted_df = sorted_df.dropna(subset=['launch_angle', 'launch_speed'], how='any')
+
+
 # 把 launch_speed > 120 的值改成 120
 sorted_df.loc[sorted_df["launch_speed"] > 120, "launch_speed"] = 120
 
@@ -116,44 +118,49 @@ print(f"已輸出 parquet：{output_path}")
 # 建立快取
 joblib.dump(df, cache_path)
 print(f"已建立快取檔：{cache_path}")
-#%%
-# # 建立顏色對照
-# unique_events = sorted_df["events"].dropna().unique()
-# colors = plt.cm.get_cmap("hsv", len(unique_events))
-# event_to_color = {ev: colors(i) for i, ev in enumerate(unique_events)}
-# event_to_color["unknown"] = (0.5, 0.5, 0.5, 0.5)  # 為 NaN 預留顏色
 
-# # # 填補缺值後 map
-# event_colors = sorted_df["events"].fillna("unknown").map(event_to_color)
-# event_colors = mcolors.to_rgba_array(event_colors.tolist())
+# 建立顏色對照
+unique_events = sorted_df["events"].dropna().unique()
+colors = plt.cm.get_cmap("hsv", len(unique_events))
+event_to_color = {ev: colors(i) for i, ev in enumerate(unique_events)}
+event_to_color["unknown"] = (0.5, 0.5, 0.5, 0.5)  # 為 NaN 預留顏色
 
-# # # 繪圖
-# angles = np.deg2rad(sorted_df["launch_angle"])
-# radii = sorted_df["launch_speed"]
-# area = (radii / radii.max()) * 20
+# 填補缺值後 map
+event_colors = sorted_df["events"].fillna("unknown").map(event_to_color)
+event_colors = mcolors.to_rgba_array(event_colors.tolist())
 
-# fig = plt.figure(figsize=(8, 6))
-# ax = fig.add_subplot(projection='polar')
-# sc = ax.scatter(angles, radii, c=event_colors, s=area, alpha=0.7)
-# ax.set_thetamin(-90) #type: ignore
-# ax.set_thetamax(90) #type: ignore
+# 移除 unknown 事件
+valid_mask = sorted_df["events"].notna()
+sorted_df = sorted_df[valid_mask]
+event_colors = event_colors[valid_mask]
 
-# # # 加上圖例（右側）
-# handles = [plt.Line2D([0], [0], marker='o', color='w', label=ev,
-#                       markerfacecolor=event_to_color[ev], markersize=8)
-#             for ev in event_to_color.keys()]
-# ax.legend(handles=handles, title='Event', loc='center left', bbox_to_anchor=(1.05, 0.5))
+# 繪圖
+angles = np.deg2rad(sorted_df["launch_angle"])
+radii = sorted_df["launch_speed"]
+area = (radii / radii.max()) * 20
 
-# # 加上輔助圓弧線（例：r = 20, 40, 60, 80, 100, 120）
-# # 使用既有的 bins
-# for r in speed_bins:
-#     ax.plot(np.linspace(np.radians(-90), np.radians(90), 200),
-#             [r]*200, '-', color='gray', lw=0.5)
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(projection='polar')
+sc = ax.scatter(angles, radii, c=event_colors, s=area, alpha=0.7)
+ax.set_thetamin(-90) #type: ignore
+ax.set_thetamax(90) #type: ignore
 
-# for theta in angle_bins:
-#     ax.plot(np.radians([theta]*200),
-#             np.linspace(0, 120, 200), '-', color='gray', lw=0.5)
+# # 加上圖例（右側）
+handles = [plt.Line2D([0], [0], marker='o', color='w', label=ev,
+                markerfacecolor=event_to_color[ev], markersize=8)
+            for ev in event_to_color.keys() if ev != "unknown"]
+ax.legend(handles=handles, title='Event', loc='center left', bbox_to_anchor=(1.05, 0.5))
+
+# 加上輔助圓弧線（例：r = 20, 40, 60, 80, 100, 120）
+# 使用既有的 bins
+for r in speed_bins:
+    ax.plot(np.linspace(np.radians(-90), np.radians(90), 200),
+            [r]*200, '-', color='gray', lw=0.5)
+
+for theta in angle_bins:
+    ax.plot(np.radians([theta]*200),
+            np.linspace(0, 120, 200), '-', color='gray', lw=0.5)
 
 
-# plt.show()
+plt.show()
 #%%
