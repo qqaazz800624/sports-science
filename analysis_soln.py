@@ -41,7 +41,7 @@ def preprocess_factor(df, prefix, year, ascending_way=True):
     return sub_df, year_df
 
 
-soln_path = "/Users/yantianli/factor_and_defense_factor/solution.csv"
+soln_path = "/Users/yantianli/factor-and-defense-factor/solution.csv"
 soln_df = pd.read_csv(soln_path, index_col=0).copy()
 
 defense_var, year_defense = preprocess_factor(soln_df, "defense_", 2024, ascending_way=True)

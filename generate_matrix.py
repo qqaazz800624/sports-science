@@ -1,10 +1,9 @@
 #%%
 import pandas as pd
+import numpy as np
 import os
 
 from IPython.display import display as dp
-import pandas as pd
-import numpy as np
 
 from expect_score import get_truncated_dataset_with_team, get_rtheta_prob_tbl, get_whole_dataset
 from team_park_metrics import get_team_score
@@ -36,6 +35,11 @@ df.insert(new_pitcher_tm_col, 'pitcher_team', pitcher_tm_col) #type: ignore
 # ]
 
 
+
+
+
+dp(pitch_df.head())
+#%%
 # 計算打線在其他park作客的年度結果
 def generate_away_park_defense_eqn(
         data:pd.DataFrame,

@@ -1,6 +1,6 @@
 # __init__.py
 """
-factor_and_defense_factor package
+factor-and-defense-factor package
 
 提供：
 - calculate_score：用於打擊 / 投球的實際與預期結果計算
