@@ -35,11 +35,6 @@ df.insert(new_pitcher_tm_col, 'pitcher_team', pitcher_tm_col) #type: ignore
 # ]
 
 
-
-
-
-dp(pitch_df.head())
-#%%
 # 計算打線在其他park作客的年度結果
 def generate_away_park_defense_eqn(
         data:pd.DataFrame,
