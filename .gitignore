@@ -3,3 +3,6 @@
 *.parquet
 *.pyc
 *.pkl
+*.png
+*.html
+*.ipynb

@@ -1,132 +1,127 @@
 #%%
 import pandas as pd
-import numpy as np
 import os
-
-from IPython.display import display as dp
-
+import base64
 import plotly.express as px
+from team_colors import mlb_colors
 
-import seaborn as sns
+# 設定logo size
+logo_size_x = 0.4
 
-
-pd.set_option("display.max_rows", None)      # 列不要省略
-pd.set_option("display.max_columns", None)   # 欄不要省略
-pd.set_option("display.width", None)         # 不限制總寬度
-pd.set_option("display.max_colwidth", None)  # 每欄完整顯示
-
-
-
-
-soln_path = "/Users/yantianli/factor-and-defense-factor/estimated_factors.csv"
-regression_df = pd.read_csv(soln_path, index_col=None).copy()
-
-
-
-# Remove 2020 if present and convert to string for categorical axis (no gap)
-regression_df = regression_df[regression_df["Year"] != 2020].copy()
-regression_df["Year"] = regression_df["Year"].astype(str)
-
-# MLB Team Colors
-mlb_colors = {
-# 美國聯盟 (American League)
-    'BAL': '#DF4601',  # Baltimore Orioles (Orange)
-    'BOS': '#BD3039',  # Boston Red Sox (Red)
-    'CWS': '#27251F',  # Chicago White Sox (Black)
-    'CLE': '#00385D',  # Cleveland Guardians (Navy)
-    'DET': '#0C2340',  # Detroit Tigers (Navy)
-    'HOU': '#002D62',  # Houston Astros (Navy)
-    'KC':  '#004687',  # Kansas City Royals (Royal Blue)
-    'LAA': '#BA0021',  # Los Angeles Angels (Red)
-    'MIN': '#002B5C',  # Minnesota Twins (Navy)
-    'NYY': '#003087',  # New York Yankees (Navy)
-    'OAK': '#003831',  # Oakland Athletics (Forest Green)
-    'SEA': '#005C5C',  # Seattle Mariners (Northwest Green/Teal)
-    'TB':  '#092C5C',  # Tampa Bay Rays (Navy)
-    'TEX': '#003278',  # Texas Rangers (Blue)
-    'TOR': '#134A8E',  # Toronto Blue Jays (Blue)
-
-    # 國家聯盟 (National League)
-    'AZ': '#A71930',  # Arizona Diamondbacks (Sedona Red)
-    'ATL': '#CE1141',  # Atlanta Braves (Scarlet)
-    'CHC': '#0E3386',  # Chicago Cubs (Royal Blue)
-    'CIN': '#C6011F',  # Cincinnati Reds (Red)
-    'COL': '#333366',  # Colorado Rockies (Purple)
-    'LAD': '#005A9C',  # Los Angeles Dodgers (Dodger Blue)
-    'MIA': '#00A3E0',  # Miami Marlins (Miami Blue)
-    'MIL': '#12284B',  # Milwaukee Brewers (Navy)
-    'NYM': '#FF5910',  # New York Mets (Blue)
-    'PHI': '#BA0C2F',  # Philadelphia Phillies (Red)
-    'PIT': '#FDB827',  # Pittsburgh Pirates (Gold) *註：底色通常是黑，但黃色為主視覺亮點
-    'SD':  '#FFC425',  # San Diego Padres (Brown)
-    'SF':  '#FD5A1E',  # San Francisco Giants (Orange)
-    'STL': '#C41E3A',  # St. Louis Cardinals (Red)
-    'WSH': '#AB0003',  # Washington Nationals (Red)
-}
-linechart_y = "DefenseFactor"
-
-
-# 確保資料依照年份排序，這樣 X 軸才會遞增
-regression_df.sort_values(by="Year", inplace=True)
-
-# --- 只顯示特定球隊設定 ---
-# 在這裡輸入你想看的球隊代號
-teams_to_show = [
-    
-] 
-
-# 過濾資料
+# 篩選球隊
+teams_to_show = []
 if teams_to_show:
     plot_df = regression_df[regression_df['Team'].isin(teams_to_show)].copy()
 else:
-    plot_df = regression_df.copy() # 如果是空的，就顯示全部
+    plot_df = regression_df.copy()
 
 
-# 找出資料中的最後一年，用來標示隊名
-last_year = plot_df["Year"].max()
+# ---------------------------------------------------------
+# 1. 路徑設定 (保持不變)
+# ---------------------------------------------------------
+LOGOS_DIR = "/Users/yantianli/factor-and-defense-factor/logos"
+SOLN_PATH = "/Users/yantianli/factor-and-defense-factor/estimated_factors.csv"
 
-# 建立一個 Text 欄位
-# 只有當 Year == last_year 時，才填入 Team 名稱，其他填空字串
-plot_df['Label'] = plot_df.apply(
-    lambda row: row['Team'] if row['Year'] == last_year else "", axis=1
-)
+# ---------------------------------------------------------
+# 2. 讀取資料與處理 (關鍵修改在這邊!)
+# ---------------------------------------------------------
+regression_df = pd.read_csv(SOLN_PATH, index_col=None).copy()
+regression_df = regression_df[regression_df["Year"] != 2020].copy()
 
+regression_df["Year"] = regression_df["Year"].astype(int)
+regression_df["Team"] = regression_df["Team"].str.strip()
+regression_df.sort_values(by="Year", inplace=True)
+
+
+linechart_y = "DefenseFactor"
+
+# ---------------------------------------------------------
+# 3. 圖片讀取函式 (加入防止換行符號的處理)
+# ---------------------------------------------------------
+def get_local_image_b64(team_name):
+    file_path = os.path.join(LOGOS_DIR, f"{team_name}.png")
+    if not os.path.exists(file_path):
+        return None
+    with open(file_path, "rb") as image_file:
+        # 轉 Base64 並移除可能的換行符號，確保字串乾淨
+        encoded = base64.b64encode(image_file.read()).decode('utf-8').replace("\n", "").replace("\r", "")
+    return f"data:image/png;base64,{encoded}"
+
+# ---------------------------------------------------------
+# 4. 繪圖
+# ---------------------------------------------------------
 fig = px.line(
-    plot_df,     
-    x="Year",           
-    y=linechart_y,     
-    color="Team",       # 直接用 Team 分組和上色，不需要 ColorGroup
-    title=f"{linechart_y} Trend",
+    plot_df,
+    # 因為 Year 已經是數字了，Plotly 會自動使用線性軸
+    x="Year", 
+    y=linechart_y,
+    color="Team",
+    title=f"{linechart_y} Trend with Team Logos",
     color_discrete_map=mlb_colors,
-    hover_name="Team"
+    markers=False # 關閉原本的點
 )
 
+fig.update_traces(line=dict(width=3))
 
-# 進階設定：自訂線條與 Marker 樣式
-fig.update_traces(
-    mode='lines+markers', 
-    marker=dict(size=8, line=dict(width=2)) 
-)
+# ---------------------------------------------------------
+# 加入圖片
+# ---------------------------------------------------------
+y_values = plot_df[linechart_y]
+y_range = y_values.max() - y_values.min()
 
-# 套用雙色效果：讓所有球隊都變成「主色邊框 + 白色填充」
-fig.for_each_trace(
-    lambda trace: trace.update(
-        line=dict(width=3),
-        marker=dict(
-            color='white',            # 點的中間填成白色
-            size=8,
-            line=dict(
-                color=trace.line.color, # 點的邊框 = 線的顏色
-                width=2
+# 設定圖片高度
+logo_size_y = y_range * 0.15 if y_range > 0 else 1
+
+
+image_cache = {}
+
+for index, row in plot_df.iterrows():
+    team = row['Team']
+    if pd.notna(row[linechart_y]):
+        # 讀取與快取
+        if team not in image_cache:
+            img_source = get_local_image_b64(team)
+            image_cache[team] = img_source
+        else:
+            img_source = image_cache[team]
+        
+        # 加入圖片
+        if img_source:
+            fig.add_layout_image(
+                dict(
+                    source=img_source,
+                    xref="x", yref="y",
+                    x=row["Year"],      # 直接使用數字年份
+                    y=row[linechart_y], # 使用 Y 值
+                    sizex=logo_size_x,
+                    sizey=logo_size_y,
+                    xanchor="center", yanchor="middle",
+                    layer="above",
+                    sizing="contain"
+                )
             )
-        )
-    )
-)
 
+# ---------------------------------------------------------
+# 6. Layout 更新 (優化顯示)
+# ---------------------------------------------------------
 fig.update_layout(
-    xaxis=dict(tickmode='linear', dtick=1), 
-    legend_title_text='Team',
+    xaxis=dict(
+        title="Year",
+        # 設定刻度格式
+        tickmode='linear', # 強制每年顯示一個刻度
+        dtick=1,           # 間距為 1 年
+        tickformat="d"     # 顯示為整數 (避免出現 2015.5)
+    ),
+    yaxis=dict(
+        title=linechart_y,
+        range=[y_values.min() - logo_size_y, y_values.max() + logo_size_y]
+    ),
+    height=600,
+    plot_bgcolor='rgba(250,250,250,1)',
+    margin=dict(l=60, r=60, t=80, b=60)
 )
 
-fig.show()
+# 建議使用瀏覽器開啟，效果最好
+fig.show() 
+# 如果 renderer="browser" 沒反應，改回 fig.show() 並用 HTML 開啟
 #%%
