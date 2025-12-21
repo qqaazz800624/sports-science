@@ -5,15 +5,7 @@ import base64
 import plotly.express as px
 from team_colors import mlb_colors
 
-# 設定logo size
-logo_size_x = 0.4
 
-# 篩選球隊
-teams_to_show = []
-if teams_to_show:
-    plot_df = regression_df[regression_df['Team'].isin(teams_to_show)].copy()
-else:
-    plot_df = regression_df.copy()
 
 
 # ---------------------------------------------------------
@@ -33,7 +25,7 @@ regression_df["Team"] = regression_df["Team"].str.strip()
 regression_df.sort_values(by="Year", inplace=True)
 
 
-linechart_y = "DefenseFactor"
+linechart_y = "ParkFactor" #DefenseFactor
 
 # ---------------------------------------------------------
 # 3. 圖片讀取函式 (加入防止換行符號的處理)
@@ -50,6 +42,13 @@ def get_local_image_b64(team_name):
 # ---------------------------------------------------------
 # 4. 繪圖
 # ---------------------------------------------------------
+# 篩選球隊
+teams_to_show = []
+if teams_to_show:
+    plot_df = regression_df[regression_df['Team'].isin(teams_to_show)].copy()
+else:
+    plot_df = regression_df.copy()
+
 fig = px.line(
     plot_df,
     # 因為 Year 已經是數字了，Plotly 會自動使用線性軸
@@ -66,6 +65,10 @@ fig.update_traces(line=dict(width=3))
 # ---------------------------------------------------------
 # 加入圖片
 # ---------------------------------------------------------
+# 設定logo size
+logo_size_x = 0.4
+
+
 y_values = plot_df[linechart_y]
 y_range = y_values.max() - y_values.min()
 

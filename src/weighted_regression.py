@@ -7,16 +7,18 @@ import os
 
 from IPython.display import display as dp
 
-# Import from local modules
-try:
-    from expect_score import get_truncated_dataset_with_team, get_rtheta_prob_tbl
-except ImportError:
-    # Fallback if running as script in some environments
-    from .expect_score import get_truncated_dataset_with_team, get_rtheta_prob_tbl
+from expect_score import get_truncated_dataset_with_team, get_rtheta_prob_tbl
 
-def get_expected_bases_map():
+
+prob_df = get_rtheta_prob_tbl()
+prob_pivot = prob_df.pivot(index='r_theta', columns='events', values='probability').fillna(0)
+weights = {'single': 1, 'double': 2, 'triple': 3, 'home_run': 4}
+print(weights.items())
+
+def get_expected_bases_map(metric='slg'):
     """
-    Generate a mapping from r_theta bin to Expected Total Bases (SLG basis).
+    Generate a mapping from r_theta bin to Expected Value based on metric.
+    metric: 'slg' (Expected Bases), 'avg' (Expected Batting Avg), 'woba' (Linear Weights)
     """
     prob_df = get_rtheta_prob_tbl()
     # Pivot to have events as columns
