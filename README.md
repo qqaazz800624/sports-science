@@ -37,7 +37,7 @@ Follow these instructions to set up the project on your local machine.
 ### Prerequisites
 
 Before you begin, ensure you have the following installed:
-* **Python 3.8 or higher**: [Download Python](https://www.python.org/downloads/)
+* **Python 3.11 or higher**: [Download Python](https://www.python.org/downloads/)
 * **Git**: [Download Git](https://git-scm.com/downloads)
 * **Pip**: Usually comes installed with Python.
 
@@ -50,7 +50,12 @@ Before you begin, ensure you have the following installed:
    cd factor-and-defense-factor
    ```
 
-2. **Install the required packages:**
+2. **Create the project environment:**
+    ```bash
+   conda create -n [your_project_name] python=3.11 -y
+   ```
+
+3. **Install the required packages:**
     ```bash
    pip install -r requirements.txt
    ```
