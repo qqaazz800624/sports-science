@@ -46,7 +46,7 @@ Before you begin, ensure you have the following installed:
 1. **Clone the repository:**
    Open your terminal or command prompt and run:
    ```bash
-   git clone [https://github.com/DanielYan0224/factor-and-defense-factor.git](https://github.com/DanielYan0224/factor-and-defense-factor.git)
+   git clone https://github.com/DanielYan0224/factor-and-defense-factor.git
    cd factor-and-defense-factor
    ```
 
