@@ -2,16 +2,8 @@
 import pandas as pd
 from pybaseball import statcast
 
-import os
-
 from pathlib import Path
 
-
-# pd.set_option('display.max_rows', None)  # 顯示所有行
-# pd.set_option('display.max_columns', None)  # 顯示所有列
-# pd.set_option('display.width', None)  # 自動調整寬度以適應內容
-# pd.set_option('display.max_colwidth', None)  # 不限制單個列的最大寬度
- 
 year = 2020
   # 可調整年份範圍
 # 建立月份區間（每月抓一次）
