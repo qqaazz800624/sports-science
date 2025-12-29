@@ -2,3 +2,5 @@ numpy>=1.26.4
 pandas>=2.2.2
 matplotlib>=3.9.0
 tqdm>=4.66.4
+ipython==9.8.0
+pybaseball==2.2.7
