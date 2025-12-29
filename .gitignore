@@ -6,5 +6,5 @@
 *.png
 *.html
 *.ipynb
-*.DS_Store
 data
+.DS_Store
