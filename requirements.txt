@@ -4,3 +4,9 @@ matplotlib>=3.9.0
 tqdm>=4.66.4
 ipython==9.8.0
 pybaseball==2.2.7
+joblib==1.5.3
+sympy==1.14.0
+statsmodels==0.14.6
+nbformat==5.10.4
+kaleido==1.2.0
+plotly==6.5.2
