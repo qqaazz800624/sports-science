@@ -154,6 +154,14 @@ def run_year_regression(data, year):
     std_park = np.std(list(beta_park_centered.values()))
     std_def = np.std(list(beta_def_centered.values()))
     
+    beta_park = {}
+    for k, v in beta_park_centered.items():
+        beta_park[k] = v
+
+    beta_defense = {}
+    for k, v in beta_def_centered.items():
+        beta_defense[k] = -v
+
     park_indices = {}
     for k, v in beta_park_centered.items():
         z = v / std_park if std_park > 0 else 0
@@ -167,6 +175,8 @@ def run_year_regression(data, year):
     return {
         'year': year,
         'intercept': adj_intercept,
+        'beta_park': beta_park,
+        'beta_defense': beta_defense,
         'park_factors': park_indices,
         'defense_factors': defense_indices,
         'park_std': std_park, 
@@ -180,3 +190,15 @@ def get_local_image_b64(logos_dir, team_name):
     with open(file_path, "rb") as image_file:
         encoded = base64.b64encode(image_file.read()).decode('utf-8').replace("\n", "").replace("\r", "")
     return f"data:image/png;base64,{encoded}"
+
+def standardize_data(df):
+    res = df.copy()
+    year_cols = df.columns[1:]
+    for col in year_cols:
+        res[col] = pd.to_numeric(res[col], errors='coerce')
+        temp_data = res[~res['Team'].str.lower().isin(['mean', 'std', 'nan'])][col]
+        m = temp_data.mean()
+        s = temp_data.std()
+
+        res[col] = 100 + 20 * (res[col] - m) / s
+    return round(res)

@@ -59,6 +59,8 @@ def main():
             output.append({
                 'Year': year,
                 'Team': team,
+                'BetaPark': result['beta_park'].get(team, np.nan),
+                'BetaDefense': result['beta_defense'].get(team, np.nan),
                 'ParkFactor': result['park_factors'].get(team, np.nan),
                 'DefenseFactor': result['defense_factors'].get(team, np.nan),
                 'Intercept': result['intercept']
