@@ -94,14 +94,22 @@ def get_expected_bases_map(config: Config):
 def prepare_regression_data(df: pd.DataFrame, 
                             exp_map: pd.Series,
                             config: Config):
-    #df_bip = df[df['description'] == 'hit_into_play'].copy()
-    df_bip = df[(df['description'] == 'hit_into_play') & (df['game_type'] == 'R')].copy()
+    
+    df_bip = df[(df['description'] == 'hit_into_play') &
+                (df['game_type'] == 'R')].copy()
 
     team_mapping = {'ATH': 'OAK'}
     df_bip['home_team'] = df_bip['home_team'].replace(team_mapping)
+    df_bip['away_team'] = df_bip['away_team'].replace(team_mapping)
+    df_bip['batter_team'] = df_bip['batter_team'].replace(team_mapping)
     df_bip['pitcher_team'] = df_bip['pitcher_team'].replace(team_mapping)
 
     df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map).fillna(0)
+    
+    # 修正
+    # df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map)
+    # df_bip = df_bip.dropna(subset=['expected_metric'])
+
     event_weights = config.weights
     df_bip['real_metric'] = df_bip['events'].map(event_weights).fillna(0)
 
@@ -110,7 +118,7 @@ def prepare_regression_data(df: pd.DataFrame,
     agg_df = df_bip.groupby(group_cols).agg({
         'real_metric': 'sum',
         'expected_metric': 'sum',
-        'events': 'count' # n_pd
+        'events': 'count' 
     }).reset_index()
     
     agg_df.rename(columns={'events': 'weight', 'real_metric': 'sum_real', 'expected_metric': 'sum_exp'}, inplace=True)
@@ -170,7 +178,9 @@ def run_year_regression(data, year):
     defense_indices = {}
     for k, v in beta_def_centered.items():
         z = v / std_def if std_def > 0 else 0
+        #z = -v / std_def if std_def > 0 else 0
         defense_indices[k] = 100 - 20 * z
+        #defense_indices[k] = 100 + 20 * z
     
     return {
         'year': year,
