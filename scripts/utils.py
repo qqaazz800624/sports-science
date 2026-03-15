@@ -99,16 +99,14 @@ def prepare_regression_data(df: pd.DataFrame,
                 (df['game_type'] == 'R')].copy()
 
     team_mapping = {'ATH': 'OAK'}
-    df_bip['home_team'] = df_bip['home_team'].replace(team_mapping)
-    df_bip['away_team'] = df_bip['away_team'].replace(team_mapping)
-    df_bip['batter_team'] = df_bip['batter_team'].replace(team_mapping)
-    df_bip['pitcher_team'] = df_bip['pitcher_team'].replace(team_mapping)
+    for col in ['home_team', 'away_team', 'batter_team', 'pitcher_team']:
+        df_bip[col] = df_bip[col].replace(team_mapping)
 
-    df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map).fillna(0)
+    #df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map).fillna(0)
     
     # 修正
-    # df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map)
-    # df_bip = df_bip.dropna(subset=['expected_metric'])
+    df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map)
+    df_bip = df_bip.dropna(subset=['expected_metric'])
 
     event_weights = config.weights
     df_bip['real_metric'] = df_bip['events'].map(event_weights).fillna(0)
@@ -177,10 +175,10 @@ def run_year_regression(data, year):
         
     defense_indices = {}
     for k, v in beta_def_centered.items():
-        z = v / std_def if std_def > 0 else 0
-        #z = -v / std_def if std_def > 0 else 0
-        defense_indices[k] = 100 - 20 * z
-        #defense_indices[k] = 100 + 20 * z
+        #z = v / std_def if std_def > 0 else 0
+        z = -v / std_def if std_def > 0 else 0
+        #defense_indices[k] = 100 - 20 * z
+        defense_indices[k] = 100 + 20 * z
     
     return {
         'year': year,

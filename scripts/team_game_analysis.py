@@ -1,6 +1,5 @@
 #%%
 
-
 import pandas as pd
 import numpy as np
 import os
@@ -34,6 +33,7 @@ df_bip = df[
 
 team_mapping = {'ATH': 'OAK'}
 df_bip['home_team'] = df_bip['home_team'].replace(team_mapping)
+df_bip['away_team'] = df_bip['away_team'].replace(team_mapping)
 df_bip['pitcher_team'] = df_bip['pitcher_team'].replace(team_mapping)
 df_bip['batter_team'] = df_bip['batter_team'].replace(team_mapping)
 df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map).fillna(0)
@@ -64,7 +64,7 @@ valid_df['residual'] = valid_df['real_metric'] - valid_df['expected_metric']
 
 #%%
 
-target_team = 'STL'
+target_team = 'AZ'
 target_year = 2024
 
 
@@ -101,8 +101,8 @@ summary_table.to_csv(f'{target_team}_game_summary_{target_year}.csv')
 #%% Home Angle
 
 target_year = 2024
-home_team = 'STL'
-pitcher_team = 'STL'
+home_team = 'AZ'
+pitcher_team = 'AZ'
 
 target_df = valid_df[(valid_df['game_year'] == target_year) &
                      (valid_df['home_team'] == home_team) &
@@ -123,8 +123,8 @@ summary_df.to_csv(f'{home_team}_home_{pitcher_team}_defense_summary_{target_year
 #%% Away Angle
 
 target_year = 2024
-away_team = 'STL'
-pitcher_team = 'STL'
+away_team = 'AZ'
+pitcher_team = 'AZ'
 
 target_df = valid_df[(valid_df['game_year'] == target_year) &
                      (valid_df['away_team'] == away_team) &
@@ -145,10 +145,37 @@ summary_df.to_csv(f'{away_team}_away_{pitcher_team}_defense_summary_{target_year
 
 #%%
 
+target_team = 'AZ'
+target_year = 2024
+
+target_df = valid_df[valid_df['game_year'] == target_year].copy()
+
+stl_df = target_df[(target_df['home_team'] == target_team) | (target_df['away_team'] == target_team)].copy()
 
 
+stl_df['venue'] = np.where(stl_df['home_team'] == target_team, 'Home', 'Away')
+stl_df['opponent'] = np.where(stl_df['home_team'] == target_team, stl_df['away_team'], stl_df['home_team'])
 
+bip_counts = stl_df.groupby(['venue', 'opponent']).size().reset_index(name='bip_count')
 
+summary_table = bip_counts.pivot_table(
+    index='opponent', 
+    columns='venue', 
+    values='bip_count', 
+    aggfunc='sum', 
+    fill_value=0
+)
+
+if 'Home' not in summary_table.columns: summary_table['Home'] = 0
+if 'Away' not in summary_table.columns: summary_table['Away'] = 0
+
+summary_table['Total'] = summary_table['Home'] + summary_table['Away']
+summary_table = summary_table.sort_index()
+
+print(f"{target_year} {target_team} 在 valid_df 中的總擊球入場次數 (BIP): {summary_table['Total'].sum()} 球")
+print(summary_table)
+
+summary_table.to_csv(f'{target_team}_bip_summary_{target_year}.csv')
 
 
 #%%

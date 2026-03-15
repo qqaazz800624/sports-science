@@ -75,67 +75,6 @@ if __name__ == "__main__":
 
 #%%
 
-# import statsmodels.formula.api as smf
-
-# data_dir = '/neodata/open_dataset/mlb_data/preprocessed'
-# prob_table_filename = 'rtheta_prob_tbl.parquet'
-
-# current_weights = {
-#         'single': 1,
-#         'double': 2,
-#         'triple': 3,
-#         'home_run': 4
-#     }
-
-# config = Config(
-#         weights=current_weights,
-#         data_dir=data_dir,
-#         filename=prob_table_filename
-#     )
-
-# exp_map = get_expected_bases_map(config=config)
-
-# truncated_filename = 'truncated_data_with_rtheta_team.parquet'
-# truncated_file_path = os.path.join(data_dir, truncated_filename)
-# df = pd.read_parquet(truncated_file_path)
-# reg_df = prepare_regression_data(df, exp_map, config=config)
-
-# year = 2024
-
-# data_yr = reg_df[reg_df['game_year'] == year]
-# model = smf.wls("response ~ C(park) + C(defense)", data=data_yr, weights=data_yr['weight'])
-# res = model.fit()
-# params = res.params
-
-# all_parks = sorted(data_yr['park'].unique())
-# all_defenses = sorted(data_yr['defense'].unique())
-
-# beta1 = {} 
-# beta2 = {} 
-
-# beta0_raw = params['Intercept']
-
-# # Fill Beta1 (Park)
-# # Statsmodels naming: C(park)[T.TeamName]
-# for p in all_parks:
-#     key = f"C(park)[T.{p}]"
-#     if key in params:
-#         beta1[p] = params[key]
-#     else:
-#         beta1[p] = 0.0
-        
-# # Fill Beta2 (Defense)
-# for d in all_defenses:
-#     key = f"C(defense)[T.{d}]"
-#     if key in params:
-#         beta2[d] = params[key]
-#     else:
-#         beta2[d] = 0.0
-
-
-
-# beta2
-
 
 
 
