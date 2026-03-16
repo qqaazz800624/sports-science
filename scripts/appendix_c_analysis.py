@@ -63,6 +63,22 @@ valid_df['residual'] = valid_df['real_metric'] - valid_df['expected_metric']
 
 #%%
 
+target_df = valid_df[(valid_df['game_year'] == 2024) &
+                     (valid_df['away_team'] == 'AZ') &
+                     (valid_df['batter_team'] == 'AZ')]
+
+group_cols = ['pitcher_team']
+
+agg_df = target_df.groupby(group_cols).agg({
+        'residual': 'mean',
+        'events': 'count'
+}).reset_index()
+
+agg_df
+
+
+#%%
+
 valid_df['is_batting_home'] = (valid_df['batter_team'] == valid_df['home_team'])
 
 batting_stats = valid_df.groupby(['game_year', 'batter_team', 'is_batting_home'])['residual'].mean().unstack()
