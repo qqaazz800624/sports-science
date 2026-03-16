@@ -41,7 +41,7 @@ target_df = reg_df[(reg_df['game_year'] == 2024) &
 year = 2024
 result = run_year_regression(target_df, year)
 
-result['defense_factors']
+result
 
 
 
@@ -75,6 +75,9 @@ for i in range(60):
         if val != 0: # 只印出有值 (1.0) 的地方
             print(f"{name}: {val}")
 
+#%%
+
+res.params
 
 #%%
 
