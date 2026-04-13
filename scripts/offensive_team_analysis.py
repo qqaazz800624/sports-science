@@ -63,8 +63,8 @@ valid_df['residual'] = valid_df['real_metric'] - valid_df['expected_metric']
 
 #%%
 
-target_year = 2015
-target_team = 'HOU'
+target_year = 2023
+target_team = 'TB'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
@@ -76,7 +76,7 @@ out_events = ['strikeout', 'field_out', 'grounded_into_double_play', 'force_out'
               'other_out', 'fielders_choice_out']
 ab_events = hits_events + out_events
 
-def calc_statcast_stats(data, target_team='DET', is_target_batting=True):
+def calc_statcast_stats(data, target_team='HOU', is_target_batting=True):
     if is_target_batting:
         batting_data = data[((data['home_team'] == target_team) & (data['inning_topbot'] == 'Bot')) | 
                             ((data['away_team'] == target_team) & (data['inning_topbot'] == 'Top'))]
@@ -85,7 +85,7 @@ def calc_statcast_stats(data, target_team='DET', is_target_batting=True):
                             ((data['away_team'] == target_team) & (data['inning_topbot'] == 'Bot'))]
 
     if len(batting_data) == 0:
-        return {'G': 0, 'PA': 0, 'AVG': 0, 'OBP': 0, 'SLG': 0, 'OPS': 0, 'HR': 0}
+        return {'G': 0, 'PA': 0, 'AVG': 0, 'OBP': 0, 'SLG': 0, 'OPS': 0, 'HR': 0, 'R/G': 0}
 
     events = batting_data['events']
     
@@ -103,6 +103,15 @@ def calc_statcast_stats(data, target_team='DET', is_target_batting=True):
     
     games = batting_data['game_pk'].nunique() if 'game_pk' in batting_data.columns else 0
 
+    if 'post_bat_score' in batting_data.columns:
+        total_runs = batting_data.groupby('game_pk')['post_bat_score'].max().sum()
+    elif 'bat_score' in batting_data.columns:
+        total_runs = batting_data.groupby('game_pk')['bat_score'].max().sum()
+    else:
+        total_runs = 0
+        
+    run_per_g = total_runs / games if games > 0 else 0
+
     avg = h / ab if ab > 0 else 0
     
     obp_denominator = ab + bb + hbp + sf
@@ -118,16 +127,17 @@ def calc_statcast_stats(data, target_team='DET', is_target_batting=True):
         'OBP': round(obp, 3),
         'SLG': round(slg, 3),
         'OPS': round(ops, 3),
-        'HR': hr
+        'HR': hr,
+        'R/G': round(run_per_g, 2)  
     }
 
 df_det_home = df_pa[df_pa['home_team'] == target_team]
 df_det_away = df_pa[df_pa['away_team'] == target_team]
 
 results = {
-    f'{target_team} (Minute Maid Park)': calc_statcast_stats(df_det_home, target_team=target_team, is_target_batting=True),
+    f'{target_team} (Home Park)': calc_statcast_stats(df_det_home, target_team=target_team, is_target_batting=True),
     f'{target_team} (Other ballpark)': calc_statcast_stats(df_det_away, target_team=target_team, is_target_batting=True),
-    f'Opponents (Minute Maid Park)': calc_statcast_stats(df_det_home, target_team=target_team, is_target_batting=False),
+    f'Opponents (Home Park)': calc_statcast_stats(df_det_home, target_team=target_team, is_target_batting=False),
     f'Opponents (Other ballpark)': calc_statcast_stats(df_det_away, target_team=target_team, is_target_batting=False)
 }
 
