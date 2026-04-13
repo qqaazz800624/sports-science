@@ -63,8 +63,8 @@ valid_df['residual'] = valid_df['real_metric'] - valid_df['expected_metric']
 
 #%%
 
-target_year = 2023
-target_team = 'TB'
+target_year = 2021
+target_team = 'MIN'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
@@ -131,6 +131,7 @@ def calc_statcast_stats(data, target_team='HOU', is_target_batting=True):
         'R/G': round(run_per_g, 2)  
     }
 
+
 df_det_home = df_pa[df_pa['home_team'] == target_team]
 df_det_away = df_pa[df_pa['away_team'] == target_team]
 
@@ -140,6 +141,60 @@ results = {
     f'Opponents (Home Park)': calc_statcast_stats(df_det_home, target_team=target_team, is_target_batting=False),
     f'Opponents (Other ballpark)': calc_statcast_stats(df_det_away, target_team=target_team, is_target_batting=False)
 }
+
+def calc_general_stats(batting_data):
+    if len(batting_data) == 0:
+        return {'G': 0, 'PA': 0, 'AVG': 0, 'OBP': 0, 'SLG': 0, 'OPS': 0, 'HR': 0, 'R/G': 0}
+
+    events = batting_data['events']
+    
+    ab = events.isin(ab_events).sum()
+    h = events.isin(hits_events).sum()
+    bb = events.isin(['walk', 'intent_walk']).sum() 
+    hbp = (events == 'hit_by_pitch').sum()
+    sf = (events == 'sac_fly').sum()
+    hr = (events == 'home_run').sum()
+    
+    b1 = (events == 'single').sum()
+    b2 = (events == 'double').sum()
+    b3 = (events == 'triple').sum()
+    tb = b1 + (2 * b2) + (3 * b3) + (4 * hr)
+    
+    games = batting_data['game_pk'].nunique() if 'game_pk' in batting_data.columns else 0
+
+
+    if 'post_bat_score' in batting_data.columns:
+        total_runs = batting_data.groupby(['game_pk', 'inning_topbot'])['post_bat_score'].max().sum()
+    elif 'bat_score' in batting_data.columns:
+        total_runs = batting_data.groupby(['game_pk', 'inning_topbot'])['bat_score'].max().sum()
+    else:
+        total_runs = 0
+        
+    
+    team_games = batting_data.groupby('game_pk')['inning_topbot'].nunique().sum()
+    run_per_g = total_runs / team_games if team_games > 0 else 0
+    
+    avg = h / ab if ab > 0 else 0
+    obp_denominator = ab + bb + hbp + sf
+    obp = (h + bb + hbp) / obp_denominator if obp_denominator > 0 else 0
+    slg = tb / ab if ab > 0 else 0
+    ops = obp + slg
+
+    return {
+        'G': games, 
+        'PA': len(batting_data), 
+        'AVG': round(avg, 3),
+        'OBP': round(obp, 3),
+        'SLG': round(slg, 3),
+        'OPS': round(ops, 3),
+        'HR': hr,
+        'R/G': round(run_per_g, 2)  
+    }
+
+df_min_home = df_pa[df_pa['home_team'] == 'MIN']
+
+results['All teams at MIN Home Park'] = calc_general_stats(df_min_home)
+results['League Average'] = calc_general_stats(df_pa)
 
 final_summary_df = pd.DataFrame.from_dict(results, orient='index')
 print(final_summary_df)
