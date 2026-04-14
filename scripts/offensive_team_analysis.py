@@ -63,8 +63,8 @@ valid_df['residual'] = valid_df['real_metric'] - valid_df['expected_metric']
 
 #%%
 
-target_year = 2021
-target_team = 'MIN'
+target_year = 2015
+target_team = 'HOU'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
@@ -191,9 +191,9 @@ def calc_general_stats(batting_data):
         'R/G': round(run_per_g, 2)  
     }
 
-df_min_home = df_pa[df_pa['home_team'] == 'MIN']
+df_target_home = df_pa[df_pa['home_team'] == target_team]
 
-results['All teams at MIN Home Park'] = calc_general_stats(df_min_home)
+results[f'All teams at {target_team} Home Park'] = calc_general_stats(df_target_home)
 results['League Average'] = calc_general_stats(df_pa)
 
 final_summary_df = pd.DataFrame.from_dict(results, orient='index')
