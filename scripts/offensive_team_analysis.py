@@ -26,7 +26,7 @@ config = Config(
 exp_map = get_expected_bases_map(config=config)
 df = pd.read_parquet(truncated_file_path)
 df_bip = df[
-            (df['description'] == 'hit_into_play') & 
+            #(df['description'] == 'hit_into_play') & 
             (df['game_type'] == 'R')].copy()
 
 team_mapping = {'ATH': 'OAK'}
@@ -52,19 +52,12 @@ angle_labels = [
     for i, (low, high) in enumerate(zip(angle_bins[:-1], angle_bins[1:]), 1)
 ]
 
-df_bip['speed_bin'] = pd.cut(df_bip['launch_speed'], bins=speed_bins, right=False, labels=speed_labels)
-df_bip['angle_bin'] = pd.cut(df_bip['launch_angle'], bins=angle_bins, right=False, labels=angle_labels)
-
-df_bip['expected_metric_raw'] = df_bip['r_theta'].map(exp_map)
-valid_df = df_bip.dropna(subset=['expected_metric_raw']).copy()
-valid_df['expected_metric'] = valid_df['expected_metric_raw'].fillna(0) 
-valid_df['residual'] = valid_df['real_metric'] - valid_df['expected_metric']
-
+valid_df = df_bip.copy()
 
 #%%
 
-target_year = 2015
-target_team = 'HOU'
+target_year = 2021
+target_team = 'MIN'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
@@ -201,7 +194,8 @@ print(final_summary_df)
 
 #%%
 
-final_summary_df.to_csv(f'{target_team}_statcast_summary_{target_year}.csv')
+save_dir = "/neodata/open_dataset/mlb_data/results"
+final_summary_df.to_csv(f'{save_dir}/{target_team}_statcast_summary_{target_year}.csv')
 
 
 
