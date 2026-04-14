@@ -213,37 +213,3 @@ final_summary_df.to_csv(f'{save_dir}/{target_team}_statcast_summary_{target_year
 
 
 
-
-
-
-
-
-
-
-
-#%%
-
-
-
-
-
-
-
-#%%
-
-
-
-
-
-
-
-
-#%%
-
-
-
-
-
-
-
-#%%
