@@ -86,7 +86,7 @@ def calc_statcast_stats(data, target_team='HOU', is_target_batting=True):
     
     so = events.isin(['strikeout', 'strikeout_double_play']).sum()
     
-    hip = (batting_data['description'] == 'hit_into_play').sum()
+    bip = (batting_data['description'] == 'hit_into_play').sum()
     
     ab = events.isin(ab_events).sum()
     h = events.isin(hits_events).sum()
@@ -116,28 +116,29 @@ def calc_statcast_stats(data, target_team='HOU', is_target_batting=True):
     obp_denominator = ab + bb + hbp + sf
     obp = (h + bb + hbp) / obp_denominator if obp_denominator > 0 else 0
     
-    #slg = tb / ab if ab > 0 else 0
-    # SLG for batted balls (分母改為 HIP)
-    slg = tb / hip if hip > 0 else 0
+    slg = tb / ab if ab > 0 else 0
+    # SLG for batted balls (分母改為 bip)
+    slg_bip = tb / bip if bip > 0 else 0
 
     so_pa = so / pa if pa > 0 else 0
 
     ops = obp + slg
 
     # HR / HIP 
-    hr_hip = hr / hip if hip > 0 else 0
+    hr_bip = hr / bip if bip > 0 else 0
 
     return {
         'G': games,
         'PA': pa, 
-        'HIP': hip,
+        'BIP': bip,
         'SO/PA': round(so_pa, 3),
         # 'AVG': round(avg, 3),
         # 'OBP': round(obp, 3),
         'SLG': round(slg, 3),
+        'SLG/BIP': round(slg_bip, 3),
         #'OPS': round(ops, 3),
         'HR': hr,
-        'HR/HIP': round(hr_hip, 3),
+        'HR/BIP': round(hr_bip, 3),
         'R/G': round(run_per_g, 2)  
     }
 
@@ -160,7 +161,7 @@ def calc_general_stats(batting_data):
         return {'G': 0, 'PA': 0, 'HIP': 0, 'SO/PA': 0, 'SLG': 0, 'HR': 0, 'HR/HIP': 0, 'R/G': 0}
     
     so = events.isin(['strikeout', 'strikeout_double_play']).sum()
-    hip = (batting_data['description'] == 'hit_into_play').sum()
+    bip = (batting_data['description'] == 'hit_into_play').sum()
     
     ab = events.isin(ab_events).sum()
     h = events.isin(hits_events).sum()
@@ -188,24 +189,25 @@ def calc_general_stats(batting_data):
     avg = h / ab if ab > 0 else 0
     obp_denominator = ab + bb + hbp + sf
     obp = (h + bb + hbp) / obp_denominator if obp_denominator > 0 else 0
-    #slg = tb / ab if ab > 0 else 0
-    slg = tb / hip if hip > 0 else 0
+    slg = tb / ab if ab > 0 else 0
+    slg_bip = tb / bip if bip > 0 else 0
     ops = obp + slg
 
     so_pa = so / pa if pa > 0 else 0
-    hr_hip = hr / hip if hip > 0 else 0
+    hr_bip = hr / bip if bip > 0 else 0
 
     return {
         'G': games, 
         'PA': pa,
-        'HIP': hip,
+        'BIP': bip,
         'SO/PA': round(so_pa, 3),
         # 'AVG': round(avg, 3),
         # 'OBP': round(obp, 3),
         'SLG': round(slg, 3),
+        'SLG/BIP': round(slg_bip, 3),
         #'OPS': round(ops, 3),
         'HR': hr,
-        'HR/HIP': round(hr_hip, 3),
+        'HR/BIP': round(hr_bip, 3),
         'R/G': round(run_per_g, 2)  
     }
 
@@ -225,7 +227,7 @@ print("="*65)
 
 #%%
 
-save_dir = "/neodata/open_dataset/mlb_data/results"
+save_dir = "/Users/wujhejia/Documents/sports-science/data/results"
 final_summary_df.to_csv(f'{save_dir}/{target_team}_statcast_summary_{target_year}.csv')
 
 
