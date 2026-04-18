@@ -12,7 +12,7 @@ current_weights = {
     'home_run': 4
 }
 
-data_dir = "/neodata/open_dataset/mlb_data/preprocessed"
+data_dir = "/Users/wujhejia/Documents/sports-science/data/preprocessed"
 prob_table = "rtheta_prob_tbl.parquet"
 input_filename = "truncated_data_with_rtheta_team.parquet"
 truncated_file_path = os.path.join(data_dir, input_filename)
