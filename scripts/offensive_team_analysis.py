@@ -37,18 +37,23 @@ df_bip['batter_team'] = df_bip['batter_team'].replace(team_mapping)
 df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map).fillna(0)
 event_weights = config.weights
 df_bip['real_metric'] = df_bip['events'].map(event_weights).fillna(0)
-df_bip['YN_BOS'] = df_bip['home_team'].apply(lambda x: 1 if x == 'BOS' else 0)
 
 valid_df = df_bip.copy()
 
 #%%
 
-target_year = 2021
-target_team = 'MIN'
+target_year = 2015
+target_team = 'HOU'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
 df_pa = target_df[target_df['events'].notna()].copy()
+
+al_teams = [
+    'BAL', 'BOS', 'NYY', 'TB', 'TOR',
+    'CWS', 'CLE', 'DET', 'KC', 'MIN', 
+    'HOU', 'LAA', 'OAK', 'SEA', 'TEX'
+]
 
 pa_events = [
     'strikeout', 'strikeout_double_play', 'walk', 'intent_walk', 'hit_by_pitch',
@@ -79,10 +84,8 @@ def calc_statcast_stats(data, target_team='HOU', is_target_batting=True):
     if pa == 0:
         return {'G': 0, 'PA': 0, 'HIP': 0, 'SO/PA': 0, 'SLG': 0, 'HR': 0, 'HR/HIP': 0, 'R/G': 0}
     
-    # 計算三振數 (SO)
     so = events.isin(['strikeout', 'strikeout_double_play']).sum()
     
-    # 計算擊球進場數 (Hit Into Play)
     hip = (batting_data['description'] == 'hit_into_play').sum()
     
     ab = events.isin(ab_events).sum()
@@ -209,7 +212,9 @@ def calc_general_stats(batting_data):
 df_target_home = df_pa[df_pa['home_team'] == target_team]
 
 results[f'All teams at {target_team} Home Park'] = calc_general_stats(df_target_home)
-results['League Average'] = calc_general_stats(df_pa)
+#results['League Average'] = calc_general_stats(df_pa)
+df_al_ballparks = df_pa[df_pa['home_team'].isin(al_teams)].copy()
+results['All teams (all AL ballparks)'] = calc_general_stats(df_al_ballparks)
 
 final_summary_df = pd.DataFrame.from_dict(results, orient='index')
 print(final_summary_df)
