@@ -42,8 +42,8 @@ valid_df = df_bip.copy()
 
 #%%
 
-target_year = 2015
-target_team = 'HOU'
+target_year = 2021
+target_team = 'MIN'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
