@@ -36,6 +36,7 @@ def main():
     
     merged_df = pd.concat(all_data, ignore_index=True)
     columns_filtered = ['pitch_type', 'game_type', 'game_pk',
+                        'on_1b', 'on_2b', 'on_3b', 
                         'game_date', 'game_year', 'player_name',
                         'pitch_name', 'post_bat_score', 'bat_score',
                         'batter', 'pitcher', 'events', 'description', 
