@@ -102,17 +102,16 @@ for col in required_columns:
 player_probs_df = player_probs_df[required_columns]
 
 
-
 target_players = {
-    'Shohei Ohtani': 'Ohtani',
-    'Mookie Betts': 'Betts',
-    'Freddie Freeman': 'Freeman',
-    'Teoscar Hernández': 'Teoscar',
-    'Max Muncy': 'Muncy',
-    'Will Smith': 'Smith',
-    'Gavin Lux': 'Lux',
-    'Tommy Edman': 'Edman',
-    'Miguel Rojas': 'Rojas'
+    "Heliot Ramos": 'Ramos',
+    'Lamonte Wade': 'Wade',
+    'Matt Chapman': 'Chapman',
+    'Michael Conforto': 'Conforto',
+    'Jorge Soler': 'Soler',
+    'Mike Yastrzemski': 'Yastrzemski',
+    'Thairo Estrada': 'Estrada',
+    'Patrick Bailey': 'Bailey',
+    'Tyler Fitzgerald': 'Fitzgerald'
 }
 
 player_profiles_updated = []
@@ -155,8 +154,9 @@ with open(os.path.join(save_dir, "player_profiles.json"), 'w') as f:
 
 #%%
 
-print(player_probs_df.head(20))
+wade_names = [name for name in player_probs_df.index if 'Wade' in str(name)]
 
+print(f"資料庫裡面的 Wade 確切名字是：{wade_names}")
 
 
 

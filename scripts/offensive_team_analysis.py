@@ -43,7 +43,7 @@ valid_df = df_bip.copy()
 #%%
 
 target_year = 2024
-target_team = 'LAD'
+target_team = 'SF'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
@@ -227,7 +227,6 @@ print("* Note: SLG refers to SLG for batted balls (Total Bases / Hit Into Play).
 print("* Note: HR does not include inside-the-park home runs.")
 print("="*65)
 
-#%%
 
 # save_dir = "/Users/wujhejia/Documents/sports-science/data/results"
 # final_summary_df.to_csv(f'{save_dir}/{target_team}_statcast_summary_{target_year}.csv')
