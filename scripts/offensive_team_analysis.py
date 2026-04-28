@@ -42,8 +42,8 @@ valid_df = df_bip.copy()
 
 #%%
 
-target_year = 2021
-target_team = 'MIN'
+target_year = 2024
+target_team = 'LAD'
 
 target_df = valid_df[valid_df['game_year'] == target_year].copy()
 
@@ -139,6 +139,7 @@ def calc_statcast_stats(data, target_team='HOU', is_target_batting=True):
         #'OPS': round(ops, 3),
         'HR': hr,
         'HR/BIP': round(hr_bip, 3),
+        'RUNS': total_runs,
         'R/G': round(run_per_g, 2)  
     }
 
@@ -208,6 +209,7 @@ def calc_general_stats(batting_data):
         #'OPS': round(ops, 3),
         'HR': hr,
         'HR/BIP': round(hr_bip, 3),
+        'RUNS': total_runs,
         'R/G': round(run_per_g, 2)  
     }
 
@@ -227,11 +229,76 @@ print("="*65)
 
 #%%
 
-save_dir = "/Users/wujhejia/Documents/sports-science/data/results"
-final_summary_df.to_csv(f'{save_dir}/{target_team}_statcast_summary_{target_year}.csv')
+# save_dir = "/Users/wujhejia/Documents/sports-science/data/results"
+# final_summary_df.to_csv(f'{save_dir}/{target_team}_statcast_summary_{target_year}.csv')
 
 
+#%%
 
+def calc_team_overall_stats(data, target_team):
+    is_target_batting = (
+        ((data['home_team'] == target_team) & (data['inning_topbot'] == 'Bot')) | 
+        ((data['away_team'] == target_team) & (data['inning_topbot'] == 'Top'))
+    )
+    
+    batting_data = data[is_target_batting].copy()
+    events = batting_data['events']
+
+    pa = events.isin(pa_events).sum()
+    if pa == 0:
+        return {'G': 0, 'PA': 0, 'HIP': 0, 'SO/PA': 0, 'SLG': 0, 'SLG/BIP': 0, 'HR': 0, 'HR/BIP': 0, 'R/G': 0}
+    
+    so = events.isin(['strikeout', 'strikeout_double_play']).sum()
+    hip = (batting_data['description'] == 'hit_into_play').sum()
+    ab = events.isin(ab_events).sum()
+    
+    hr = (events == 'home_run').sum()
+    b1 = (events == 'single').sum()
+    b2 = (events == 'double').sum()
+    b3 = (events == 'triple').sum()
+    tb = b1 + (2 * b2) + (3 * b3) + (4 * hr)
+    
+    games = batting_data['game_pk'].nunique() if 'game_pk' in batting_data.columns else 0
+    
+    if 'post_bat_score' in batting_data.columns:
+        total_runs = batting_data.groupby('game_pk')['post_bat_score'].max().sum()
+    elif 'bat_score' in batting_data.columns:
+        total_runs = batting_data.groupby('game_pk')['bat_score'].max().sum()
+    else:
+        total_runs = 0
+        
+    run_per_g = total_runs / games if games > 0 else 0
+
+    
+    slg = tb / ab if ab > 0 else 0
+    slg_hip = tb / hip if hip > 0 else 0
+    so_pa = so / pa if pa > 0 else 0
+    hr_hip = hr / hip if hip > 0 else 0
+
+    return {
+        'G': games,
+        'PA': pa, 
+        'HIP': hip,
+        'SO/PA': round(so_pa, 3),
+        'SLG': round(slg, 3),
+        'SLG/HIP': round(slg_hip, 3),
+        'HR': hr,
+        'HR/HIP': round(hr_hip, 3),
+        'RUNS': total_runs,
+        'R/G': round(run_per_g, 2)  
+    }
+
+
+overall_results = {}
+overall_results[f'{target_year} {target_team} (Overall)'] = calc_team_overall_stats(df_pa, target_team)
+
+overall_summary_df = pd.DataFrame.from_dict(overall_results, orient='index')
+
+print("\n" + "="*70)
+print(f"{target_year} {target_team} overall offensive summary:")
+print("="*70)
+print(overall_summary_df)
+print("="*70)
 
 
 #%%
