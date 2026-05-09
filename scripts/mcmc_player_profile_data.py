@@ -52,7 +52,9 @@ exp_map = get_expected_bases_map(config=config)
 df = pd.read_parquet(truncated_file_path)
 
 df = add_batter_names_to_statcast(df)
-df_target = df[df['game_year'] == 2024].copy()
+
+target_year = 2023
+df_target = df[df['game_year'] == target_year].copy()
 
 
 #%%
@@ -103,20 +105,20 @@ player_probs_df = player_probs_df[required_columns]
 
 
 target_players = {
-    "Heliot Ramos": 'Ramos',
-    'Lamonte Wade': 'Wade',
-    'Matt Chapman': 'Chapman',
-    'Michael Conforto': 'Conforto',
-    'Jorge Soler': 'Soler',
-    'Mike Yastrzemski': 'Yastrzemski',
-    'Thairo Estrada': 'Estrada',
-    'Patrick Bailey': 'Bailey',
-    'Tyler Fitzgerald': 'Fitzgerald'
+    "Taylor Ward": 'Ward',
+    'Shohei Ohtani': 'Ohtani',
+    'Mike Trout': 'Trout',
+    'Brandon Drury': 'Drury',
+    'Hunter Renfroe': 'Renfroe',
+    'Luis Rengifo': 'Rengifo',
+    "Logan O'Hoppe": "O'Hoppe",
+    'Mickey Moniak': 'Moniak',
+    'Zach Neto': 'Neto'
 }
 
 player_profiles_updated = []
 
-print("Start updating player profiles with 2024 data...")
+print(f"Start updating player profiles with {target_year} data...")
 
 for i, (full_name, short_name) in enumerate(target_players.items()):
     if full_name in player_probs_df.index:
@@ -148,7 +150,7 @@ print("\nplayer_profiles = [")
 for p in player_profiles_updated:
     print(f"    {p},")
 print("]")
-
+#%%
 with open(os.path.join(save_dir, "player_profiles.json"), 'w') as f:
     json.dump(player_profiles_updated, f, indent=4)
 
