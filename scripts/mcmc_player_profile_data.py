@@ -53,7 +53,7 @@ df = pd.read_parquet(truncated_file_path)
 
 df = add_batter_names_to_statcast(df)
 
-target_year = 2023
+target_year = 2024
 df_target = df[df['game_year'] == target_year].copy()
 
 
@@ -73,19 +73,24 @@ event_mapping = {
     'hit_by_pitch': 'walk',        
     'catcher_interf': 'walk',      
     
-    'strikeout': 'out',
-    'field_out': 'out',
-    'force_out': 'out',
-    'grounded_into_double_play': 'out',
-    'double_play': 'out',
-    'sac_fly': 'out',
-    'sac_bunt': 'out',
-    'fielders_choice': 'out',
-    'fielders_choice_out': 'out',
-    'field_error': 'out',          
-    'sac_fly_double_play': 'out',
-    'strikeout_double_play': 'out',
-    'triple_play': 'out'
+    # Single Outs (Advances the game by exactly 1 out)
+    'strikeout': 'single_out',
+    'field_out': 'single_out',
+    'force_out': 'single_out',
+    'sac_fly': 'single_out',
+    'sac_bunt': 'single_out',
+    'fielders_choice': 'single_out',
+    'fielders_choice_out': 'single_out',
+    'field_error': 'single_out',          
+    
+    # Double Plays (Advances the game by exactly 2 outs)
+    'grounded_into_double_play': 'double_out',
+    'double_play': 'double_out',
+    'sac_fly_double_play': 'double_out',
+    'strikeout_double_play': 'double_out',
+    
+    # Triple Plays (Advances the game by exactly 3 outs / ends the inning instantly)
+    'triple_play': 'triple_out'
 }
 
 df_terminal['simple_event'] = df_terminal['events'].map(event_mapping).fillna('out')
@@ -96,7 +101,7 @@ player_probs_df = (
     .unstack(fill_value=0)
 )
 
-required_columns = ['out', 'walk', 'single', 'double', 'triple', 'home_run']
+required_columns = ['single_out', 'double_out', 'triple_out', 'walk', 'single', 'double', 'triple', 'home_run']
 for col in required_columns:
     if col not in player_probs_df.columns:
         player_probs_df[col] = 0.0
@@ -105,20 +110,20 @@ player_probs_df = player_probs_df[required_columns]
 
 
 target_players = {
-    "Taylor Ward": 'Ward',
-    'Shohei Ohtani': 'Ohtani',
-    'Mike Trout': 'Trout',
-    'Brandon Drury': 'Drury',
-    'Hunter Renfroe': 'Renfroe',
-    'Luis Rengifo': 'Rengifo',
-    "Logan O'Hoppe": "O'Hoppe",
-    'Mickey Moniak': 'Moniak',
-    'Zach Neto': 'Neto'
+    "Shohei Ohtani": "Ohtani",
+    "Mookie Betts": "Betts",
+    "Freddie Freeman": "Freeman",
+    "Teoscar Hernández": "Teoscar",
+    "Tommy Edman": "Edman",
+    "Will Smith": "Smith",
+    "Gavin Lux": "Lux",
+    "Max Muncy": "Muncy",
+    "Miguel Rojas": "Rojas"
 }
 
 player_profiles_updated = []
 
-print(f"Start updating player profiles with {target_year} data...")
+print(f"Start updating player profiles with {target_year} data (Multi-Out Breakdown)...")
 
 for i, (full_name, short_name) in enumerate(target_players.items()):
     if full_name in player_probs_df.index:
@@ -130,12 +135,19 @@ for i, (full_name, short_name) in enumerate(target_players.items()):
         b3_prob = round(row['triple'], 3).item()
         hr_prob = round(row['home_run'], 3).item()
         
-        out_prob = round(1.0 - (bb_prob + b1_prob + b2_prob + b3_prob + hr_prob), 3)
+        double_out_prob = round(row['double_out'], 3).item()
+        triple_out_prob = round(row['triple_out'], 3).item()
+        
+        # Calculate single_out as the residual probability to guarantee a perfect 1.0 total sum.
+        # This prevents rounding errors from creating leaky probability metrics during matrix multiplication.
+        single_out_prob = round(1.0 - (double_out_prob + triple_out_prob + bb_prob + b1_prob + b2_prob + b3_prob + hr_prob), 3)
         
         profile = {
             'id': i,
             'name': short_name,
-            'OUT': out_prob,
+            'SINGLE_OUT': single_out_prob,
+            'DOUBLE_OUT': double_out_prob,
+            'TRIPLE_OUT': triple_out_prob,
             'BB': bb_prob,
             '1B': b1_prob,
             '2B': b2_prob,
@@ -150,15 +162,16 @@ print("\nplayer_profiles = [")
 for p in player_profiles_updated:
     print(f"    {p},")
 print("]")
+
 #%%
-with open(os.path.join(save_dir, "player_profiles.json"), 'w') as f:
+with open(os.path.join(save_dir, "player_profiles_LAD_2024.json"), 'w') as f:
     json.dump(player_profiles_updated, f, indent=4)
 
 #%%
 
-wade_names = [name for name in player_probs_df.index if 'Wade' in str(name)]
+check_names = [name for name in player_probs_df.index if 'Teoscar' in str(name)]
 
-print(f"資料庫裡面的 Wade 確切名字是：{wade_names}")
+print(f"資料庫裡面的 Teoscar 確切名字是：{check_names}")
 
 
 
