@@ -110,15 +110,15 @@ player_probs_df = player_probs_df[required_columns]
 
 
 target_players = {
-    "Shohei Ohtani": "Ohtani",
-    "Mookie Betts": "Betts",
-    "Freddie Freeman": "Freeman",
-    "Teoscar Hernández": "Teoscar",
-    "Tommy Edman": "Edman",
-    "Will Smith": "Smith",
-    "Gavin Lux": "Lux",
-    "Max Muncy": "Muncy",
-    "Miguel Rojas": "Rojas"
+    "Heliot Ramos": "Ramos",
+    "Lamonte Wade": "Wade",
+    "Matt Chapman": "Chapman",
+    "Michael Conforto": "Conforto",
+    "Jorge Soler": "Soler",
+    "Mike Yastrzemski": "Yastrzemski",
+    "Thairo Estrada": "Estrada",
+    "Patrick Bailey": "Bailey",
+    "Tyler Fitzgerald": "Fitzgerald"
 }
 
 player_profiles_updated = []
@@ -164,14 +164,15 @@ for p in player_profiles_updated:
 print("]")
 
 #%%
-with open(os.path.join(save_dir, "player_profiles_LAD_2024.json"), 'w') as f:
+with open(os.path.join(save_dir, "player_profiles_SF_2024.json"), 'w') as f:
     json.dump(player_profiles_updated, f, indent=4)
 
 #%%
 
-check_names = [name for name in player_probs_df.index if 'Teoscar' in str(name)]
+check_name = 'Chisholm'
+check_names = [name for name in player_probs_df.index if check_name in str(name)]
 
-print(f"資料庫裡面的 Teoscar 確切名字是：{check_names}")
+print(f"資料庫裡面的 {check_name} 確切名字是：{check_names}")
 
 
 
