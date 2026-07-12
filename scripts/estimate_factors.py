@@ -56,14 +56,29 @@ def main():
         year = result['year']
         teams = set(result['park_factors'].keys()) | set(result['defense_factors'].keys())
         for team in teams:
+            beta_park = result['beta_park'].get(team, np.nan)
+            beta_park_se = result['beta_park_se'].get(team, np.nan)
+            beta_defense = result['beta_defense'].get(team, np.nan)
+            beta_defense_se = result['beta_defense_se'].get(team, np.nan)
             output.append({
                 'Year': year,
                 'Team': team,
-                'BetaPark': result['beta_park'].get(team, np.nan),
-                'BetaDefense': result['beta_defense'].get(team, np.nan),
+                'BetaPark': beta_park,
+                'BetaParkSE': beta_park_se,
+                'BetaParkCI95Lower': beta_park - 1.96 * beta_park_se,
+                'BetaParkCI95Upper': beta_park + 1.96 * beta_park_se,
+                'BetaDefense': beta_defense,
+                'BetaDefenseSE': beta_defense_se,
+                'BetaDefenseCI95Lower': beta_defense - 1.96 * beta_defense_se,
+                'BetaDefenseCI95Upper': beta_defense + 1.96 * beta_defense_se,
                 'ParkFactor': result['park_factors'].get(team, np.nan),
+                'ParkFactorSE': result['park_factor_se'].get(team, np.nan),
                 'DefenseFactor': result['defense_factors'].get(team, np.nan),
-                'Intercept': result['intercept']
+                'DefenseFactorSE': result['defense_factor_se'].get(team, np.nan),
+                'Intercept': result['intercept'],
+                'InterceptSE': result['intercept_se'],
+                'ParkStd': result['park_std'],
+                'DefenseStd': result['def_std']
             })
     out_df = pd.DataFrame(output)
     output_path = os.path.join(args.output_dir, args.output_filename)

@@ -102,10 +102,10 @@ def prepare_regression_data(df: pd.DataFrame,
     for col in ['home_team', 'away_team', 'batter_team', 'pitcher_team']:
         df_bip[col] = df_bip[col].replace(team_mapping)
 
-    #df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map).fillna(0)
+    df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map).fillna(0)
     
     # 修正
-    df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map)
+    #df_bip['expected_metric'] = df_bip['r_theta'].map(exp_map)
     df_bip = df_bip.dropna(subset=['expected_metric'])
 
     event_weights = config.weights
@@ -128,38 +128,72 @@ def prepare_regression_data(df: pd.DataFrame,
     return agg_df
 
 
+def centered_effect_cov(res, levels, prefix):
+    """置中後的 beta 是原始參數的線性組合 (L @ theta)，
+    其共變異數矩陣為 L @ Cov(theta) @ L^T"""
+    params = res.params
+    param_idx = {name: i for i, name in enumerate(params.index)}
+    L = np.zeros((len(levels), len(params)))
+    for i, lvl in enumerate(levels):
+        key = f"C({prefix})[T.{lvl}]"
+        if key in param_idx:
+            L[i, param_idx[key]] = 1.0
+    L -= L.mean(axis=0, keepdims=True)
+    return L @ res.cov_params().values @ L.T
+
+
 def run_year_regression(data, year):
     data_yr = data[data['game_year'] == year].copy()
 
     model = smf.wls("avg_residual ~ C(park) + C(defense)", data=data_yr, weights=data_yr['weight'])
     res = model.fit()
-    
+
     params = res.params
+    cov_params = res.cov_params().values
+    param_idx = {name: i for i, name in enumerate(params.index)}
     all_parks = sorted(data_yr['park'].unique())
     all_defenses = sorted(data_yr['defense'].unique())
-    
-    beta_park_raw = {} 
-    beta_def_raw = {} 
+
+    park_cov = centered_effect_cov(res, all_parks, 'park')
+    def_cov = centered_effect_cov(res, all_defenses, 'defense')
+    park_se_arr = np.sqrt(np.diag(park_cov))
+    def_se_arr = np.sqrt(np.diag(def_cov))
+
+    beta_park_raw = {}
+    beta_def_raw = {}
     intercept_raw = params['Intercept']
-    
+
     for p in all_parks:
         key = f"C(park)[T.{p}]"
         beta_park_raw[p] = params.get(key, 0.0)
-            
+
     for d in all_defenses:
         key = f"C(defense)[T.{d}]"
         beta_def_raw[d] = params.get(key, 0.0)
-            
+
     mean_park = np.mean(list(beta_park_raw.values()))
     mean_def = np.mean(list(beta_def_raw.values()))
-    
+
     beta_park_centered = {k: v - mean_park for k, v in beta_park_raw.items()}
     beta_def_centered = {k: v - mean_def for k, v in beta_def_raw.items()}
     adj_intercept = intercept_raw + mean_park + mean_def
-    
+
+    # 調整後截距 = Intercept + mean(park betas) + mean(defense betas)
+    L_int = np.zeros(len(params))
+    L_int[param_idx['Intercept']] = 1.0
+    for p in all_parks:
+        key = f"C(park)[T.{p}]"
+        if key in param_idx:
+            L_int[param_idx[key]] = 1.0 / len(all_parks)
+    for d in all_defenses:
+        key = f"C(defense)[T.{d}]"
+        if key in param_idx:
+            L_int[param_idx[key]] = 1.0 / len(all_defenses)
+    adj_intercept_se = float(np.sqrt(L_int @ cov_params @ L_int))
+
     std_park = np.std(list(beta_park_centered.values()))
     std_def = np.std(list(beta_def_centered.values()))
-    
+
     beta_park = {}
     for k, v in beta_park_centered.items():
         beta_park[k] = v
@@ -168,26 +202,40 @@ def run_year_regression(data, year):
     for k, v in beta_def_centered.items():
         beta_defense[k] = -v
 
+    beta_park_se = dict(zip(all_parks, park_se_arr))
+    beta_defense_se = dict(zip(all_defenses, def_se_arr))
+
     park_indices = {}
     for k, v in beta_park_centered.items():
         z = v / std_park if std_park > 0 else 0
         park_indices[k] = 100 + 20 * z
-        
+
     defense_indices = {}
     for k, v in beta_def_centered.items():
         #z = v / std_def if std_def > 0 else 0
         z = -v / std_def if std_def > 0 else 0
         #defense_indices[k] = 100 - 20 * z
         defense_indices[k] = 100 + 20 * z
-    
+
+    # delta method：index = 100 + 20 * beta / std，將 std 視為固定尺度
+    park_index_se = {k: 20 * se / std_park if std_park > 0 else 0.0
+                     for k, se in beta_park_se.items()}
+    defense_index_se = {k: 20 * se / std_def if std_def > 0 else 0.0
+                        for k, se in beta_defense_se.items()}
+
     return {
         'year': year,
         'intercept': adj_intercept,
+        'intercept_se': adj_intercept_se,
         'beta_park': beta_park,
         'beta_defense': beta_defense,
+        'beta_park_se': beta_park_se,
+        'beta_defense_se': beta_defense_se,
         'park_factors': park_indices,
         'defense_factors': defense_indices,
-        'park_std': std_park, 
+        'park_factor_se': park_index_se,
+        'defense_factor_se': defense_index_se,
+        'park_std': std_park,
         'def_std': std_def
     }
 
