@@ -78,7 +78,8 @@ def main():
                 'Intercept': result['intercept'],
                 'InterceptSE': result['intercept_se'],
                 'ParkStd': result['park_std'],
-                'DefenseStd': result['def_std']
+                'DefenseStd': result['def_std'],
+                'SigmaTBR': result['sigma_tbr']
             })
     out_df = pd.DataFrame(output)
     output_path = os.path.join(args.output_dir, args.output_filename)

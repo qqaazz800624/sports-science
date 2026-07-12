@@ -111,20 +111,25 @@ def prepare_regression_data(df: pd.DataFrame,
     event_weights = config.weights
     df_bip['real_metric'] = df_bip['events'].map(event_weights).fillna(0)
 
+    # 每年逐球 TBR 的標準差，供誤差合理性檢查使用
+    ball_tbr = df_bip['real_metric'] - df_bip['expected_metric']
+    sigma_tbr = ball_tbr.groupby(df_bip['game_year']).std().rename('sigma_tbr')
+
     group_cols = ['game_year', 'home_team', 'pitcher_team']
 
     agg_df = df_bip.groupby(group_cols).agg({
         'real_metric': 'sum',
         'expected_metric': 'sum',
-        'events': 'count' 
+        'events': 'count'
     }).reset_index()
-    
+
     agg_df.rename(columns={'events': 'weight', 'real_metric': 'sum_real', 'expected_metric': 'sum_exp'}, inplace=True)
-    
+
     agg_df['avg_residual'] = (agg_df['sum_real'] - agg_df['sum_exp']) / agg_df['weight']
     agg_df['park'] = agg_df['home_team']
     agg_df['defense'] = agg_df['pitcher_team']
-    
+    agg_df = agg_df.merge(sigma_tbr, on='game_year')
+
     return agg_df
 
 
@@ -236,7 +241,8 @@ def run_year_regression(data, year):
         'park_factor_se': park_index_se,
         'defense_factor_se': defense_index_se,
         'park_std': std_park,
-        'def_std': std_def
+        'def_std': std_def,
+        'sigma_tbr': data_yr['sigma_tbr'].iloc[0] if 'sigma_tbr' in data_yr.columns else np.nan
     }
 
 def get_local_image_b64(logos_dir, team_name):
